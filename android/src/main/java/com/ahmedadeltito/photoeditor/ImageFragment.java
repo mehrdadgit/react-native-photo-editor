@@ -32,7 +32,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.OnImageClick
 
         TypedArray images = getResources().obtainTypedArray(R.array.photo_editor_photos);
 
-        ArrayList<Integer> stickers = (ArrayList<Integer>) getActivity().getIntent().getExtras().getSerializable("stickers");
+        //ArrayList<Integer> stickers = (ArrayList<Integer>) getActivity().getIntent().getExtras().getSerializable("stickers");
+        ArrayList<Integer> stickers = (ArrayList<Integer>) getArguments().getSerializable("stickers");
 
         if (stickers != null && stickers.size() > 0) {
             stickerBitmaps = new ArrayList<>();
