@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReadableMap;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Color;
 
 import java.util.ArrayList;
@@ -69,11 +70,17 @@ public class RNPhotoEditorModule extends ReactContextBaseJavaModule {
     //Process Stickers
     ReadableArray stickers = props.getArray("stickers");
     ArrayList<Integer> stickersIntent = new ArrayList<Integer>();
+    ArrayList<String> stickersCategories = new ArrayList<String>();
+
+    Resources resources = getReactApplicationContext().getResources();
+    String packageName = getReactApplicationContext().getPackageName();
 
     for (int i = 0;i < stickers.size();i++) {
-      int drawableId = getReactApplicationContext().getResources().getIdentifier(stickers.getString(i), "drawable", getReactApplicationContext().getPackageName());
-
+      int drawableId = resources.getIdentifier(stickers.getString(i), "drawable", packageName);
       stickersIntent.add(drawableId);
+
+      String category = stickers.getString(i).split("[0-9]")[0];
+      stickersCategories.add(category);
     }
 
     //Process Hidden Controls
@@ -92,13 +99,12 @@ public class RNPhotoEditorModule extends ReactContextBaseJavaModule {
       colorPickerColors.add(Color.parseColor(colors.getString(i)));
     }
 
-
     Intent intent = new Intent(getCurrentActivity(), PhotoEditorActivity.class);
     intent.putExtra("selectedImagePath", path);
     intent.putExtra("colorPickerColors", colorPickerColors);
     intent.putExtra("hiddenControls", hiddenControlsIntent);
     intent.putExtra("stickers", stickersIntent);
-
+    intent.putExtra("stickersCategories", stickersCategories);
 
     mCancelCallback = onCancel;
     mDoneCallback = onDone;
