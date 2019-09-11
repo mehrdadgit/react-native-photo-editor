@@ -14,6 +14,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import ui.photoeditor.R;
 /**
  * Created by Ahmed Adel on 5/4/17.
@@ -25,6 +27,8 @@ public class ImageFragment extends Fragment implements ImageAdapter.OnImageClick
     private PhotoEditorActivity photoEditorActivity;
     RecyclerView imageRecyclerView;
 
+    private final HashMap<Bitmap, String> stickerBitmapToNameMap = new HashMap<>();
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,12 +38,15 @@ public class ImageFragment extends Fragment implements ImageAdapter.OnImageClick
 
         //ArrayList<Integer> stickers = (ArrayList<Integer>) getActivity().getIntent().getExtras().getSerializable("stickers");
         ArrayList<Integer> stickers = (ArrayList<Integer>) getArguments().getSerializable("stickers");
+        ArrayList<String> stickersNames = (ArrayList<String>) getArguments().getSerializable("stickersNames");
 
         if (stickers != null && stickers.size() > 0) {
             stickerBitmaps = new ArrayList<>();
 
             for (int i = 0;i < stickers.size();i++) {
-                stickerBitmaps.add(decodeSampledBitmapFromResource(getActivity().getResources(), stickers.get(i), 120, 120));
+                Bitmap bitmap = decodeSampledBitmapFromResource(getActivity().getResources(), stickers.get(i), 120, 120);
+                stickerBitmaps.add(bitmap);
+                stickerBitmapToNameMap.put(bitmap, stickersNames.get(i));
             }
         } else {
             stickerBitmaps = new ArrayList<>();
@@ -56,7 +63,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.OnImageClick
 
         imageRecyclerView = (RecyclerView) rootView.findViewById(R.id.fragment_main_photo_edit_image_rv);
         imageRecyclerView.setLayoutManager(new GridLayoutManager(photoEditorActivity, 3));
-        ImageAdapter adapter = new ImageAdapter(photoEditorActivity, stickerBitmaps);
+        ImageAdapter adapter = new ImageAdapter(photoEditorActivity, stickerBitmapToNameMap);
         adapter.setOnImageClickListener(this);
         imageRecyclerView.setAdapter(adapter);
 
@@ -89,6 +96,7 @@ public class ImageFragment extends Fragment implements ImageAdapter.OnImageClick
 
     @Override
     public void onImageClickListener(Bitmap image) {
-        photoEditorActivity.addImage(image);
+        String name = this.stickerBitmapToNameMap.get(image);
+        photoEditorActivity.addImage(image, name);
     }
 }

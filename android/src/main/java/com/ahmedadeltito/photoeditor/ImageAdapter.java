@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import ui.photoeditor.R;
 
@@ -21,10 +23,12 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     private List<Bitmap> imageBitmaps;
     private LayoutInflater inflater;
     private OnImageClickListener onImageClickListener;
+    private HashMap<Bitmap, String> bitmapNameMap;
 
-    public ImageAdapter(@NonNull Context context, @NonNull List<Bitmap> imageBitmaps) {
+    public ImageAdapter(@NonNull Context context, @NonNull HashMap<Bitmap, String> imageBitmaps) {
         this.inflater = LayoutInflater.from(context);
-        this.imageBitmaps = imageBitmaps;
+        this.bitmapNameMap = imageBitmaps;
+        this.imageBitmaps = new ArrayList<>(imageBitmaps.keySet());
     }
 
     @Override

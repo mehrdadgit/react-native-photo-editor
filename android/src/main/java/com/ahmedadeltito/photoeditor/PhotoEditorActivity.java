@@ -74,6 +74,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
     private ArrayList<Integer> colorPickerColors;
     private int colorCodeTextView = -1;
     private PhotoEditorSDK photoEditorSDK;
+    private ArrayList stickersUsed = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +131,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
         deleteTextView.setTypeface(newFont);
 
         final List<Fragment> fragmentsList = new ArrayList<>();
+        ArrayList<String> stickersNames = (ArrayList<String>) getIntent().getExtras().getSerializable("stickersNames");
 
        // ImageFragment imageFragment = new ImageFragment();
         ArrayList stickers = (ArrayList<Integer>) getIntent().getExtras().getSerializable("stickers");
@@ -141,22 +143,28 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
             //imageFragment.setArguments(bundle);
 
             // build map of stickers for each category
-            Map<String, ArrayList> map = new HashMap<>();
-            for (String category : stickersCategories)
-                if (!map.containsKey(category)) map.put(category, new ArrayList());
-
+            Map<String, ArrayList<String>> categoryToStickerIdMap = new HashMap<>();
+            Map<String, ArrayList<String>> categoryToStickerNameMap = new HashMap<>();
+            for (String category : stickersCategories) {
+                if (!categoryToStickerIdMap.containsKey(category))
+                    categoryToStickerIdMap.put(category, new ArrayList());
+                if (!categoryToStickerNameMap.containsKey(category))
+                    categoryToStickerNameMap.put(category, new ArrayList());
+            }
                 // add all stickers to each category list of the map
             for (int i = 0; i < stickersCategories.size(); i++) {
                 String category = stickersCategories.get(i);
                 Object sticker = stickers.get(i);
-                ArrayList stickerList = map.get(category);
-                stickerList.add(sticker);
+                Object name = stickersNames.get(i);
+                ((ArrayList)categoryToStickerIdMap.get(category)).add(sticker);
+                ((ArrayList)categoryToStickerNameMap.get(category)).add(name);
             }
 
-            for (Map.Entry<String, ArrayList> entry : map.entrySet())
+            for (Map.Entry<String, ArrayList<String>> entry : categoryToStickerIdMap.entrySet())
             {
                 Bundle bundle = new Bundle();
                 bundle.putSerializable("stickers", entry.getValue());
+                bundle.putSerializable("stickersNames", categoryToStickerNameMap.get(entry.getKey()));
                 ImageFragment imageFragment = new ImageFragment();
                 imageFragment.setArguments(bundle);
                 fragmentsList.add(imageFragment);
@@ -290,8 +298,9 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
             mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
     }
 
-    public void addImage(Bitmap image) {
+    public void addImage(Bitmap image, String name) {
         photoEditorSDK.addImage(image);
+        stickersUsed.add(name);
         if (mLayout != null)
             mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
     }
@@ -398,6 +407,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
                     RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
             layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
             parentImageRelativeLayout.setLayoutParams(layoutParams);
+            final ArrayList stickersUsed = this.stickersUsed;
             new CountDownTimer(1000, 500) {
                 public void onTick(long millisUntilFinished) {
 
@@ -417,6 +427,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
 
                         String selectedOutputPath = mediaStorageDir.getPath() + File.separator + imageName;
                         returnIntent.putExtra("imagePath", selectedOutputPath);
+                        returnIntent.putExtra("stickersUsed", stickersUsed);
                         Log.d("PhotoEditorSDK", "selected camera path " + selectedOutputPath);
                         File file = new File(selectedOutputPath);
 
@@ -451,6 +462,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
                 RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
         parentImageRelativeLayout.setLayoutParams(layoutParams);
+        final ArrayList stickersUsed = this.stickersUsed;
         new CountDownTimer(1000, 500) {
             public void onTick(long millisUntilFinished) {
 
@@ -480,6 +492,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
 
                 Intent returnIntent = new Intent();
                 returnIntent.putExtra("imagePath", newPath);
+                returnIntent.putExtra("stickersUsed", stickersUsed);
                 setResult(Activity.RESULT_OK, returnIntent);
 
                 finish();
@@ -584,6 +597,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
     @Override
     public void onRemoveViewListener(int numberOfAddedViews) {
         Log.i(TAG, "onRemoveViewListener");
+        stickersUsed.remove(stickersUsed.size() - 1);
         if (numberOfAddedViews == 0) {
             undoTextView.setVisibility(View.GONE);
             undoTextTextView.setVisibility(View.GONE);

@@ -38,7 +38,11 @@ public class RNPhotoEditorModule extends ReactContextBaseJavaModule {
           if (resultCode == Activity.RESULT_CANCELED) {
             mCancelCallback.invoke(resultCode);
           } else {
-            mDoneCallback.invoke(intent.getExtras().getString("imagePath"));
+            ArrayList<String> stickersUsed = (ArrayList<String>) intent.getExtras().getSerializable("stickersUsed");
+            String x = intent.getExtras().getString("imagePath");
+            for (String s : stickersUsed)
+              x += "\n" + s;
+            mDoneCallback.invoke(x);
           }
 
         }
@@ -71,16 +75,19 @@ public class RNPhotoEditorModule extends ReactContextBaseJavaModule {
     ReadableArray stickers = props.getArray("stickers");
     ArrayList<Integer> stickersIntent = new ArrayList<Integer>();
     ArrayList<String> stickersCategories = new ArrayList<String>();
+    ArrayList<String> stickersNames = new ArrayList<String>();
 
     Resources resources = getReactApplicationContext().getResources();
     String packageName = getReactApplicationContext().getPackageName();
 
     for (int i = 0;i < stickers.size();i++) {
-      int drawableId = resources.getIdentifier(stickers.getString(i), "drawable", packageName);
+      String stickerName = stickers.getString(i);
+      int drawableId = resources.getIdentifier(stickerName, "drawable", packageName);
       stickersIntent.add(drawableId);
 
-      String category = stickers.getString(i).split("[0-9]")[0];
+      String category = stickerName.split("[0-9]")[0];
       stickersCategories.add(category);
+      stickersNames.add(stickerName);
     }
 
     //Process Hidden Controls
@@ -105,6 +112,7 @@ public class RNPhotoEditorModule extends ReactContextBaseJavaModule {
     intent.putExtra("hiddenControls", hiddenControlsIntent);
     intent.putExtra("stickers", stickersIntent);
     intent.putExtra("stickersCategories", stickersCategories);
+    intent.putExtra("stickersNames", stickersNames);
 
     mCancelCallback = onCancel;
     mDoneCallback = onDone;
